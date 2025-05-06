@@ -1,53 +1,50 @@
 #include <iostream>
 #include <climits>
-#include <cstring>
 
 using namespace std;
 
 int matrix[100][100];
-int dp[100][100][100]; // dp[line][begin][end]
-int N;
+int memo[100][100][100] = {0};
+bool calculated[100][100][100] = {false};
+int totalWeigh = INT_MAX;
 
-int arranje(int begin, int end, int line, int weigh) {
-    if (begin < 0 || end >= N || line >= N)
-        return INT_MAX;
+void arranje(int N, int begin, int end, int line, int weigh) {
+    
+    if (begin < 0 || end >= N || line >= N) return;
 
-    // Memoization
-    if (dp[line][begin][end] != -1)
-        return dp[line][begin][end];
+    if (calculated[begin][end][line] && memo[begin][end][line] <= weigh) return;
 
-    int currentWeigh = 0;
+    calculated[begin][end][line] = true;
+    memo[begin][end][line] = weigh;
+
     for (int i = begin; i <= end; i++) {
-        currentWeigh += matrix[line][i];
+        weigh += matrix[line][i];
     }
 
     if (line == N - 1) {
-        dp[line][begin][end] = weigh + currentWeigh;
-        return dp[line][begin][end];
+        if (weigh < totalWeigh) totalWeigh = weigh;
+        return;
     }
-
-    int left = arranje(begin - 1, end, line + 1, weigh + currentWeigh);
-    int right = arranje(begin, end + 1, line + 1, weigh + currentWeigh);
-
-    dp[line][begin][end] = min(left, right);
-    return dp[line][begin][end];
+    
+    arranje(N, begin - 1, end, line + 1, weigh);
+    arranje(N, begin, end + 1, line + 1, weigh);    
 }
 
 int main() {
+
+    int N;
+
     cin >> N;
 
-    for (int i = 0; i < N; i++) 
-        for (int j = 0; j < N; j++) 
+    for (int i=0; i<N; i++) {
+        for (int j=0; j<N; j++) {
             cin >> matrix[i][j];
-
-    memset(dp, -1, sizeof(dp));
-
-    int totalWeigh = INT_MAX;
-
-    for (int i = 0; i < N; i++) {
-        totalWeigh = min(totalWeigh, arranje(i, i, 0, 0));
+        }
     }
 
+    for (int i=0; i<N; i++) arranje(N, i, i, 0, 0);
+
     cout << totalWeigh << endl;
+
     return 0;
 }
